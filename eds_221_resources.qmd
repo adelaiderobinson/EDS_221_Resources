@@ -76,3 +76,55 @@ lead_poverty_plot
 #save the file in the project
 ggsave(plot = lead_poverty_plot, here("figs","lead_plot.png"), width = 4, height = 4)
 ```
+
+# Data Structures
+
+## atomic vector
+
+when you combine data types in an atomic vector, will get converted to most flexible
+
+1\) logical
+
+2\) integer
+
+3\) double
+
+4)character (most flexible)
+
+```{r}
+turtle <- c(TRUE, 4.5, 8L)
+turtle
+class(turtle)
+#converts all to numeric
+```
+
+## List
+
+a lot like a vector but different data types
+
+good for outputs of models, so you can pull out individual items
+
+```{r}
+waffle <- list("dog", 21.5, "brown", 2L)
+waffle
+class(waffle)
+```
+
+## Matrix
+
+2 dimensional, only one data type
+
+```{r}
+
+
+```
+
+## data frames
+
+most commonly used, stores the data you have read in
+
+2D and can have multiple data types
+
+```{r}
+
+```

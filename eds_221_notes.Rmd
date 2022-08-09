@@ -1,0 +1,48 @@
+---
+title: "R Notebook"
+output:
+  html_document:
+    df_print: paged
+editor_options:
+  chunk_output_type: inline
+---
+
+# Number Types
+
+See lecture slides day 2 am
+
+what happens if we try to force a number w/ decimals to integer.
+
+if you put 10.2 L it will tell you that you can't make it an integer, and will save as numeric. adding the L is saying it is an integer.
+
+python will round down if int(9.5), will save as 9
+
+when we combine data types, the most flexible will be retained. But you can't combine numeric and characters.
+
+We will mostly be using floats, type of numeric.
+
+strings = sequences of characters
+
+sometimes numbers don't represent values: eg well number for usgs, so they need to be treated as characters not numeric values. When we read things into r, it makes assumptions. make sure you convert as needed.
+
+logicals sometimes 0 or 1
+
+factors allow us to create meaningful order within our data and can ask questions about relationshipe . based on how far someone lives away from downtown santa barbara, what is the likelihood of liking, loving, netural to or, hate going to bars. order matters.
+
+# Data structures
+
+eds 221 day 2 morning lecture
+
+5 most common data structures:
+
+dimensions and types. Homogenous: only a single type of data, heterogenous: more than one type of data.
+
+## atomic vector: 
+
+only one type. If you put in multiple types then the most flexible type will be assigned to all elements.
+
+logical, integer, double and character from least to most flexible.
+
+## List
+
+similar to vector but the elements don't have to have the same class

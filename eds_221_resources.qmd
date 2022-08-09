@@ -1,0 +1,78 @@
+---
+title: "EDS212_Resource_Document"
+format: html
+editor: visual
+---
+
+# Quarto
+
+```{r}
+#| fig-height: 5 
+#| fig-width : 4
+#these set the width of figures in output
+library(here)
+library(tidyverse)
+library(janitor)
+library(dplyr)
+```
+
+# Terminal
+
+The terminal in R studio is the same as the terminal outside r studio.
+
+Navigate to a folder that is version controlled and you can use git commands.
+
+-   Git Add -A
+
+-   Git commit -m "important message"
+
+-   git push
+
+-   git status
+
+pwd
+
+-   tells you where you are
+
+cd ..
+
+-   will take you back up one
+
+ls
+
+-   list all files
+
+cd
+
+-   sets working directory
+
+# Pipe Operator
+
+%\>% pipe operator or \|\>
+
+-   basically means and then, allows you to write code in the order you think about it.
+
+-   command shift m- shortcut
+
+# Working With Files
+
+## Here
+
+Here Package: much better option than using working directory
+
+## Importing and Exporting Files + Data Tidying
+
+add file paths starting from here location
+
+```{r}
+# import and fix the names
+blood_lead <- read_csv(here("data","stl_blood_lead.csv" )) %>% clean_names() #automatically makes names lowercase
+#make a new column
+blood_lead_pov <- mutate(blood_lead, 
+                         new_col = poverty_tot/total_pop *100)
+#Graph a plot
+lead_poverty_plot <- ggplot(data = blood_lead_pov, aes(x = pct_elevated, y = new_col)) + geom_point(color = "pink") +labs(x = "percent of population in poverty", y = "Percent of population with elevated blood levels")
+lead_poverty_plot
+#save the file in the project
+ggsave(plot = lead_poverty_plot, here("figs","lead_plot.png"), width = 4, height = 4)
+```

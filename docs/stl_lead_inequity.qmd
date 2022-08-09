@@ -1,0 +1,56 @@
+---
+title: "stl_lead_inequality"
+format: html
+editor: visual
+---
+
+```{r}
+library(tidyverse)
+library(janitor)
+library(here)
+library(dplyr)
+```
+
+```{r}
+stl_lead <- read_csv(here("data", "stl_blood_lead.csv")) %>% clean_names()
+```
+
+```{r}
+names(stl_lead)
+
+```
+
+```{r}
+stl_lead_prop <- mutate(stl_lead, new_col = white/total_pop * 100)
+```
+
+```{r}
+#| fig-height: 5 
+#| fig-width : 4
+stl_lead_plot <- ggplot(data = stl_lead_prop, aes(x = pct_elevated,
+                                 y = new_col)) + geom_point(color = "orange") + labs(title = "Children with Elevated Blood Levels", y = "Percent with elevated blood levels", x = "Percent White") +theme_classic()
+stl_lead_plot
+```
+
+The overall trend this graph shows that a higher percent of children who do not identify as white have elevated blood levels.
+
+```{r}
+ggsave(plot = stl_lead_plot,
+       here("figs", "stl_lead_plot.png"),
+       width = 6,
+       height = 5)
+```
+
+```{r}
+#| fig-height: 5 
+#| fig-width : 4
+pct_histogram <- ggplot(data = stl_lead, aes(x = pct_elevated)) + geom_histogram(fill = "blue", color = "orange", binwidth = 2)
+pct_histogram
+```
+
+```{r}
+ggsave(plot = pct_histogram,
+       here("figs", "elevatedleadlevels.png"),
+       width = 6,
+       height = 5)
+```

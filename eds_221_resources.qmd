@@ -2,9 +2,14 @@
 title: "EDS212_Resource_Document"
 format: html
 editor: visual
+Execute:
+  warning:false
+  message:false
 ---
 
 # Quarto
+
+see initial chunk for info on excluding warnings and messages
 
 ```{r}
 #| fig-height: 5 
@@ -54,7 +59,7 @@ cd
 
 -   command shift m- shortcut
 
-# Working With Files
+# Working With Files & Tidy Data
 
 ## Here
 
@@ -75,6 +80,21 @@ lead_poverty_plot <- ggplot(data = blood_lead_pov, aes(x = pct_elevated, y = new
 lead_poverty_plot
 #save the file in the project
 ggsave(plot = lead_poverty_plot, here("figs","lead_plot.png"), width = 4, height = 4)
+```
+
+## mutating and filtering data 
+
+Dataset from: ["https://portal.edirepository.org/nis/mapbrowse?packageid=knb-lter-and.4027.14"]("https://portal.edirepository.org/nis/mapbrowse?packageid=knb-lter-and.4027.14")
+
+```{r}
+#import dataset and clean names 
+aquatic_dataset <- read_csv(here("data", "AS00601.csv")) %>% clean_names()
+
+#Filter for cutthroat 
+cutthroat_dataset <- mutate(aquatic_dataset, species = "ONCL")
+#graph
+ggplot(cutthroat_dataset, aes(x = unittype)) +geom_bar(color = "green", fill = "yellow") + labs( Title = "Unit Types for Cuthroat", x= "Unit Type", y ="Count")
+
 ```
 
 # Data Structures
@@ -128,3 +148,5 @@ most commonly used, stores the data you have read in
 ```{r}
 
 ```
+
+## building data frame using tribble 

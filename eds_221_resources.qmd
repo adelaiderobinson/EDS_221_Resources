@@ -1,5 +1,5 @@
 ---
-title: "EDS212_Resource_Document"
+title: "EDS221_Resource_Document"
 format: html
 editor: visual
 Execute:
@@ -15,6 +15,12 @@ see initial chunk for info on excluding warnings and messages
 #| fig-height: 5 
 #| fig-width : 4
 #these set the width of figures in output
+
+```
+
+## load packages and told r not to show that they showed up in the output
+
+```{r output=FALSE}
 library(here)
 library(tidyverse)
 library(janitor)
@@ -58,44 +64,6 @@ cd
 -   basically means and then, allows you to write code in the order you think about it.
 
 -   command shift m- shortcut
-
-# Working With Files & Tidy Data
-
-## Here
-
-Here Package: much better option than using working directory
-
-## Importing and Exporting Files + Data Tidying
-
-add file paths starting from here location
-
-```{r}
-# import and fix the names
-blood_lead <- read_csv(here("data","stl_blood_lead.csv" )) %>% clean_names() #automatically makes names lowercase
-#make a new column
-blood_lead_pov <- mutate(blood_lead, 
-                         new_col = poverty_tot/total_pop *100)
-#Graph a plot
-lead_poverty_plot <- ggplot(data = blood_lead_pov, aes(x = pct_elevated, y = new_col)) + geom_point(color = "pink") +labs(x = "percent of population in poverty", y = "Percent of population with elevated blood levels")
-lead_poverty_plot
-#save the file in the project
-ggsave(plot = lead_poverty_plot, here("figs","lead_plot.png"), width = 4, height = 4)
-```
-
-## mutating and filtering data 
-
-Dataset from: ["https://portal.edirepository.org/nis/mapbrowse?packageid=knb-lter-and.4027.14"]("https://portal.edirepository.org/nis/mapbrowse?packageid=knb-lter-and.4027.14")
-
-```{r}
-#import dataset and clean names 
-aquatic_dataset <- read_csv(here("data", "AS00601.csv")) %>% clean_names()
-
-#Filter for cutthroat 
-cutthroat_dataset <- mutate(aquatic_dataset, species = "ONCL")
-#graph
-ggplot(cutthroat_dataset, aes(x = unittype)) +geom_bar(color = "green", fill = "yellow") + labs( Title = "Unit Types for Cuthroat", x= "Unit Type", y ="Count")
-
-```
 
 # Data Structures
 
@@ -149,4 +117,217 @@ most commonly used, stores the data you have read in
 
 ```
 
-## building data frame using tribble 
+## building data frame using tribble
+
+# If Statements, for loops and string detect
+
+## If Statements
+
+{ used to group statements
+
+```{r}
+# think of it as, if is the function, curly brackets contain what will happen
+burrito <- 2
+if (burrito < 5) {
+  print("I love potatoes")
+} 
+# nothing will print
+burritos <- 0.7
+if (burritos > 2) {
+  print("I love burritos")
+}
+
+
+
+```
+
+## If else statements
+
+Create a vector stored as `max_airtemp_c` with a value of 24.1. Write an `if else` statement that will print "Temperature too high" if `max_airtemp_c` is greater than 27, or "Temperature OK" if temperature is less than or equal to 27.
+
+```{r}
+max_airtemp_c <- 26
+if( max_airtemp_c > 27){
+  print("Temperature too high")
+} else if (max_airtemp_c <= 26){
+  print("Temperature OK")
+}
+```
+
+## string detect
+
+```{r}
+# condition w/ words
+# does this pattern show up anywhere in this element
+my_ships <- c("millenium falcon", "X-wing", "Tie-fighter", "Death Star")
+str_detect(my_ships, pattern = "millenium")
+
+#use an if statement w. string detect
+
+#plugging str_detect into an if statement
+coho <- "salmonids"
+if(str_detect(coho, pattern = "sal")){
+  print("The very best fish")
+}
+
+
+```
+
+## Combine string detect with if else
+
+Store the base price of a burrito as base_burrito with a value of 6.50. Store main_ingredent with a starting string of "veggie." Write a statement that will return the price of a burrito based on what a user specifies as "main_ingredient" (either "veggie", "chicken" or "steak") given the following:
+
+A veggie burrito is the cost of a base burrito
+
+A chicken burrito costs 3.00 more than a base burrito
+
+A steak burrito costs 3.25 more than a base burrito
+
+```{r}
+base_burrito <- 6.5
+main_ingredient <- "steak"
+if(str_detect(main_ingredient, "veggie")){
+  print(base_burrito)
+} else if (str_detect(main_ingredient, "chicken")){
+  print(base_burrito + 3.00)
+} else if (str_detect(main_ingredient, "steak")){
+  print(base_burrito +3.25)
+}
+```
+
+this will return the same results using the == sign instead of str_detect
+
+```{r}
+
+base_burrito <- 6.5
+main_ingredient <- "chicken"
+if(main_ingredient == "veggie"){
+  print(base_burrito)
+} else if (main_ingredient == "chicken"){
+  print(base_burrito + 3.00)
+} else 
+  print(base_burrito + 3.25)
+
+```
+
+# For Loops
+
+Create a new vector called fish that contains the values 8, 10, 12, 23 representing counts of different fish types in a fish tank (goldfish, tetras, guppies, and mollies, respectively). Write a for loop that iterates through fish, and returns what proportion of total fish in the tank are that species. Assume that these counts represent all fish in the tank.
+
+```{r}
+fish <- c(8, 10, 12, 23)
+for(i in seq_along(fish)){
+  val = fish[i]/sum(fish)
+  print(val)
+}
+```
+
+## 
+
+There is an existing vector in R called month.name that contains all month names (just Try running month.name in the Console to check it out). Write a for loop that iterates over all months in month.name and prints "January is month 1," "February is month 2", etc.
+
+```{r}
+values <- seq_along(month.name)
+for( i in seq_along(month.name)){
+  val = paste(month.name[i], "is month", values[i])
+  print(val)
+}
+
+```
+
+## Applying functions across a dataframe
+
+also known as syntactic sugar for for loops
+
+use select when you want to select columns
+
+### filter
+
+```{r}
+#read in the data and clean names
+toolik_biochem <- read_csv(here("data","2011_Kling_Akchem.csv"), na = ".") |> clean_names()
+#create a subset of the data that contains only observations from the “Toolik Inlet” site, and that only contains the variables (columns) for pH, dissolved organic carbon (DOC), and total dissolved nitrogen (TDN) 
+# use filter to pull within a column
+
+inlet_biochem <- toolik_biochem |>
+  filter(site == "Toolik Inlet") |> #use select to choose which columns
+  select(p_h, doc_u_m, tdn_u_m)
+
+
+```
+
+### dplyr:: across, group_by and summarize
+
+```{r}
+#find the mean of inlet_biochem using summarize, na.rm = TRUE tells it to ignore NA values
+#w/o across you must specify each column
+summarize(inlet_biochem, mean(p_h, na.rm = TRUE), mean(doc_u_m, na.rm = TRUE), mean(tdn_u_m, na.rm = TRUE))
+
+#w/across, any spot that is numeric
+inlet_biochem |> summarize(across(where(is.numeric), mean, na.rm = TRUE))
+```
+
+### apply
+
+1 = apply function over rows, 2 = apply function over columns
+
+```{r}
+apply(X =inlet_biochem, MARGIN = 2, FUN = mean, na.rm = TRUE)
+```
+
+### purr
+
+```{r}
+map(.x = inlet_biochem,.f = mean, na.rm = TRUE)
+```
+
+# Working With Files & Tidy Data
+
+## Here
+
+Here Package: much better option than using working directory
+
+## Importing and Exporting Files
+
+add file paths starting from here location
+
+```{r}
+# import and fix the names
+blood_lead <- read_csv(here("data","stl_blood_lead.csv" )) %>% clean_names() #automatically makes names lowercase
+#make a new column
+blood_lead_pov <- mutate(blood_lead, 
+                         new_col = poverty_tot/total_pop *100)
+#Graph a plot
+lead_poverty_plot <- ggplot(data = blood_lead_pov, aes(x = pct_elevated, y = new_col)) + geom_point(color = "pink") +labs(x = "percent of population in poverty", y = "Percent of population with elevated blood levels")
+lead_poverty_plot
+#save the file in the project
+ggsave(plot = lead_poverty_plot, here("figs","lead_plot.png"), width = 4, height = 4)
+```
+
+### Importing data with abnormal NA values
+
+```{r}
+#this dataset has . in place of NA 
+Kling <- read_csv(here("data", "2011_Kling_Akchem.csv"), na = ".")
+```
+
+## mutating and filtering data
+
+Dataset from: ["https://portal.edirepository.org/nis/mapbrowse?packageid=knb-lter-and.4027.14"](%22https://portal.edirepository.org/nis/mapbrowse?packageid=knb-lter-and.4027.14%22)
+
+use filter when you want to pull a certain set of values from column
+
+```{r}
+#import dataset and clean names 
+aquatic_dataset <- read_csv(here("data", "AS00601.csv")) %>% clean_names()
+
+#Filter for cutthroat 
+cutthroat_dataset <- mutate(aquatic_dataset, species = "ONCL")
+#graph
+ggplot(cutthroat_dataset, aes(x = unittype)) +geom_bar(color = "green", fill = "yellow") + labs( Title = "Unit Types for Cuthroat", x= "Unit Type", y ="Count")
+
+```
+
+<https://portal.edirepository.org/nis/mapbrowse?packageid=knb-lter-arc.10341.5>
+
+## 

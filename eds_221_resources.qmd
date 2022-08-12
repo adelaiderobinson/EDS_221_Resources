@@ -25,6 +25,7 @@ library(here)
 library(tidyverse)
 library(janitor)
 library(dplyr)
+
 ```
 
 # Terminal
@@ -102,9 +103,11 @@ class(waffle)
 
 2 dimensional, only one data type
 
+build a matrix from a vector
+
 ```{r}
 
-
+data<-matrix(ncol=2,nrow=500)
 ```
 
 ## data frames
@@ -235,6 +238,18 @@ for( i in seq_along(month.name)){
 
 ```
 
+Write a for loop that returns your total time for any two consecutive quarter miles, given times in minutes
+
+```{r}
+#adding each one to the next one
+quarter_splits <- c(1.0, 1.1, 1.2, 1.1, 1.4, 1.5, 1.6, 1.4)
+
+for(i in seq_along(quarter_splits)){
+  print(quarter_splits[i]+ quarter_splits[i +1])
+  
+}
+```
+
 ## Applying functions across a dataframe
 
 also known as syntactic sugar for for loops
@@ -331,3 +346,85 @@ ggplot(cutthroat_dataset, aes(x = unittype)) +geom_bar(color = "green", fill = "
 <https://portal.edirepository.org/nis/mapbrowse?packageid=knb-lter-arc.10341.5>
 
 ## 
+
+# Functions
+
+asks for a users name and age and returns, "I'm blank and I am age years old!"
+
+```{r}
+age_name <- function(age,name){
+  paste("My name is", name, "and I am", age, "years old")
+}
+age_name(29, "Adelaide")
+```
+
+#converts animal age to human age
+
+```{r}
+convert_animal_age <- function(animal, human_age){
+  if(animal == "dog"){
+    print(human_age * 7)
+  } else if (animal == "goat"){
+    print(human_age * 4.7)
+  } else print("not a dog or a goat")
+  
+}
+#tell me the human age of this goat
+convert_animal_age("goat",89)
+# gives the else value 
+convert_animal_age("chicken", 22)
+```
+
+### make a tribble and filter
+
+```{r}
+dog_choice <- tribble(
+  ~dog_name, ~food,
+  "khora", "everything",
+  "Teddy", "Salmon",
+  "waffle", "pancakes",
+  "Banjo", "chicken")
+
+dog_menu <- function(name){
+  my_sub <-filter(dog_choice, dog_name == name)
+print(my_sub)
+}
+dog_menu("khora")
+#outputs a data frame
+
+```
+
+Or pull from the dataframe for use in the output
+
+```{r}
+dog_choice2 <- tribble(
+  ~dog_name, ~food,
+  "khora", "everything",
+  "Teddy", "Salmon",
+  "waffle", "pancakes",
+  "Banjo", "chicken",
+  "gigi", "tennis balls"
+  )
+
+dog_menu <- function(name){
+  my_sub <-filter(dog_choice2, dog_name == name)
+print(paste("My name is", my_sub$dog_name, "and I like to eat", my_sub$food ))
+}
+dog_menu("gigi")
+```
+
+### Functions meet four loops
+
+makes a function to calculate mean over columns
+
+```{r}
+mean_over_columns<- function(df){
+  for(i in seq_along(df)){
+    col_mean <- mean(df[[i]], na.rm = TRUE)
+  colum_name <- colnames(df[i])
+  print(paste("The mean value of", colum_name, "is",
+              col_mean))
+  }
+}
+mean_over_columns(mtcars)
+```

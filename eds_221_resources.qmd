@@ -18,7 +18,7 @@ see initial chunk for info on excluding warnings and messages
 
 ```
 
-## load packages and told r not to show that they showed up in the output
+## load packages/ hide in output
 
 ```{r output=FALSE}
 library(here)
@@ -68,6 +68,10 @@ cd
 
 # Data Structures
 
+## Data types
+
+for more info on data types see lecture EDS 221 le
+
 ## atomic vector
 
 when you combine data types in an atomic vector, will get converted to most flexible
@@ -85,6 +89,14 @@ turtle <- c(TRUE, 4.5, 8L)
 turtle
 class(turtle)
 #converts all to numeric
+#ask if it is numric
+is.numeric(turtle)
+#ask type
+typeof(turtle)
+```
+
+```{r}
+
 ```
 
 ## List
@@ -99,28 +111,220 @@ waffle
 class(waffle)
 ```
 
+named list
+
+```{r}
+tacos <- list(topping = c("onion", "cilantro","guacamole"), 
+              filling = c("beans", "meat", "veggie"), price = c(6.75, 8.25, 9.50))
+tacos
+#indexing list elements by name
+tacos$filling[2]
+a <- c(1,2,3)
+b <- c(3,4,5)
+my_ttest <- t.test(a,b)
+my_ttest
+class(my_ttest)
+#because it is in a list i can call certain elements
+my_ttest$p.value #take the p value out
+```
+
 ## Matrix
 
 2 dimensional, only one data type
 
 build a matrix from a vector
 
-```{r}
+note that if you combine data types it will get converted to the most flexible
 
+```{r}
+#creating a matrix, default is to fill by ry
+fish_sizea <- matrix(c(12, 14, 18, 20), ncol =2, nrow =2)
+
+#example indexing
+fish_sizea[1,1]
+fish_sizea[2,1] # 2nd row 1st column
+#empty matrix
 data<-matrix(ncol=2,nrow=500)
 ```
 
-## data frames
+### Leslie Matrix
 
-most commonly used, stores the data you have read in
+A population of fish we're interested in has four life stages: eggs (E), fry (F), juvenile (J), breeding adult (A). You are told that annually:
+
+\- Each breeding adult will produce, on average, 600 eggs
+
+\- 5% of eggs will survive to become fry
+
+\- 20% of fry will survive to become juveniles
+
+\- 16% of juveniles will survive to become adults
+
+\- Adult survival rate year to year is 90%
+
+Recall the Leslie matrix from EDS 212. Matrix multiplication (using the dot product \`%\*%\` of the matrix with the populations at each life stage) yields the population structure at the following year.
+
+Create the Leslie matrix:
+
+Make the Leslie Matrix:
+
+```{r}
+fish_leslie <- matrix(c(0, 0, 0, 600, 0.05, 0, 0, 0, 0, 0.20, 0, 0, 0, 0, 0.16, 0.9), nrow = 4, ncol = 4, byrow = TRUE)
+```
+
+matrix shows the chances of surviving to each life stage
+
+we created in eds 212, see eds212_day-4-part1- slides for review on writing equations as matrices
+
+fish_leslie
+
+The initial population structure is given by:
+
+```{r}
+# Initial population structure (Roe, Fry, Juvenile, Adult): 
+
+fish_year0 <- c(5000, 8000, 600, 400)
+```
+
+Add line-by-line comments wheres prompted in the code below, explaining what each is doing. Make sure that you are talking with your neighbors about what is really being created at each step.
+
+```{r}
+# Model projections
+
+# using the matrix and the dot product with the pop at t-1
+
+# create a vector sequence from 0 to 8 at intervals of one
+
+time_yr <- seq(from = 0, to = 8, by = 1)
+
+# creating an empty matrix
+
+proj_year <- matrix(ncol = length(fish_year0), nrow = length(time_yr))
+
+# fills the first row of the empty matrix with the initial population 
+
+proj_year[1, ] <- fish_year0
+
+# populates the matrix with the dot product of fish leslie and year - 1, giving us the population for each year, we are starting at i in 2 so it doesn't overwrite initial population. taking the dot product of survival matrix with the previous years values (in the row above) 
+
+for (i in 2:length(time_yr)) {
+
+  proj_year[i,] <- fish_leslie %*% proj_year[i-1,]
+
+}
+
+#why is this not tidy? population single variable spread over four columns, 
+
+# The rest is wrangling & visualization (run to check it out):
+
+colnames(proj_year) <- c("eggs", "fry", "juvenile", "adult")
+
+#first one compresses time into one columns, and then collapse everything besides time-year columns, put them into a life stage column, tidy format!
+
+proj_df <- data.frame(time_yr, proj_year) %>% 
+
+ #pivot longer, first argument what columns do you want to collapse, -time_year(everything except for time year)
+
+  #pivot longer increaes rows and decreases columns
+
+   pivot_longer(cols = -time_yr, names_to = "lifestage", values_to = "stage_population")
+
+ggplot(data = proj_df, aes(x = time_yr, y = stage_population)) +
+
+  geom_line(aes(color = lifestage)) +
+
+  scale_y_log10()
+```
+
+Test different combinations of survival / reproduction and starting population structures to see what happens!
+
+## data frames (make them!)
+
+most commonly used, stores the data you have read in. Under the hood is a list of vectors, each having the same length.
 
 2D and can have multiple data types
 
 ```{r}
+topping <- c("onion", "cilantro", "guacamole")
+filling <- c("beans", "meat", "veggies")
+price <- c(6.75, 8.25, 9.5)
+
+df_ex_1 <- data.frame(topping, filling, price)
+class(df_ex_1)
+
+df_ex_2 <- data.frame(topping = c("sour cream", "salsa", "cheese"), filling = c("chicken", "cheese", "cabbage"), price = c(12.50, 13.75, 15.00))
+
+#another way to make a dataframe using tribble
+#allows you to write it in the same organization as you would see it in the dataframe
+df_ex_3 <- tribble(
+  ~topping, ~filling, ~price,
+  "avocado", "steak", 13.25,
+  "raddish", "fish", 10.40,
+  "salsa", "veggies", 9.75
+)
+class(df_ex_3)
+#class additionally associated with data.frame
+df_ex_3$price
+df_ex_3$price[3]
+
 
 ```
 
 ## building data frame using tribble
+
+# Indexing
+
+## Vector
+
+```{r}
+dog_food <-c(teddy = "purina", khora = "alpo", waffle = "fancy feast")
+#added names to vector, teddy, khora and waffle w/ values in quotation marks. 
+# can call by position
+dog_food[2]
+#or name
+dog_food["khora"]
+```
+
+```{r}
+cars <- c("blue", "orange", "white")
+cars[1]
+i <- seq(1:2)
+cars[i]
+
+#replace white with yellow
+cars[3] <- "yellow"
+cars
+```
+
+## Matrix
+
+```{r}
+#creating a matrix, filling by column instread of row
+fish_size <- matrix(c(12, 14, 18, 20), ncol =2, nrow =2, byrow =FALSE)
+class(fish_size)
+typeof(fish_size)
+#example indexing
+fish_size[1,1]
+fish_size[2,1] # 2nd row 1st column
+#look at second row but keep all columns
+fish_size[2,]
+#keep all rows only 1st column
+fish_size[,1]
+```
+
+## data frame
+
+```{r}
+aquatic_dataseta <- read_csv(here("data", "AS00601.csv")) %>% clean_names()
+#Store the 5th value in column “WEIGHT” as mc_wt_5.
+mc_wt_5 <- aquatic_dataseta$weight[5]
+# Store the 8th - 20th value in the “LENGTH1” column as
+mc_length_8_20<- aquatic_dataseta$length1[8:20]
+#same thing different method
+mc_length_8_20 <- aquatic_dataseta$length1[seq(from = 8, to = 20, by = 1)]
+# Store everything in column SAMPLEDATE as a vector called
+mc_dates <- aquatic_dataseta$sampledate
+
+```
 
 # If Statements, for loops and string detect
 
@@ -139,9 +343,6 @@ burritos <- 0.7
 if (burritos > 2) {
   print("I love burritos")
 }
-
-
-
 ```
 
 ## If else statements
@@ -298,6 +499,26 @@ map(.x = inlet_biochem,.f = mean, na.rm = TRUE)
 
 # Working With Files & Tidy Data
 
+## Exploring your data
+
+```{r}
+#tells you column names
+names(mtcars)
+# an overview
+skimr::skim(mtcars)
+#dimensions, rows, columns
+dim(mtcars)
+
+#ask data type of columns
+is.numeric(mtcars$mpg)
+#getmorespecific data type
+typeof(mtcars$cyl)
+```
+
+```{r}
+
+```
+
 ## Here
 
 Here Package: much better option than using working directory
@@ -308,7 +529,7 @@ add file paths starting from here location
 
 ```{r}
 # import and fix the names
-blood_lead <- read_csv(here("data","stl_blood_lead.csv" )) %>% clean_names() #automatically makes names lowercase
+blood_lead <- read_csv(here("data","stl_blood_lead.csv" )) %>% clean_names() #automatically makes names lowercase, see ?to_any_case w/ janitor package loaded to see case options
 #make a new column
 blood_lead_pov <- mutate(blood_lead, 
                          new_col = poverty_tot/total_pop *100)
@@ -316,7 +537,8 @@ blood_lead_pov <- mutate(blood_lead,
 lead_poverty_plot <- ggplot(data = blood_lead_pov, aes(x = pct_elevated, y = new_col)) + geom_point(color = "pink") +labs(x = "percent of population in poverty", y = "Percent of population with elevated blood levels")
 lead_poverty_plot
 #save the file in the project
-ggsave(plot = lead_poverty_plot, here("figs","lead_plot.png"), width = 4, height = 4)
+#dpi specifies resolution, med 200-300
+ggsave(plot = lead_poverty_plot, here("figs","lead_plot.png"), width = 4, height = 4, )
 ```
 
 ### Importing data with abnormal NA values
@@ -328,19 +550,29 @@ Kling <- read_csv(here("data", "2011_Kling_Akchem.csv"), na = ".")
 
 ## mutating and filtering data
 
-Dataset from: ["https://portal.edirepository.org/nis/mapbrowse?packageid=knb-lter-and.4027.14"](%22https://portal.edirepository.org/nis/mapbrowse?packageid=knb-lter-and.4027.14%22)
-
-use filter when you want to pull a certain set of values from column
+Dataset from: <https://portal.edirepository.org/nis/mapbrowse?packageid=knb-lter-and.4027.14>use filter when you want to pull a certain set of values from column
 
 ```{r}
 #import dataset and clean names 
 aquatic_dataset <- read_csv(here("data", "AS00601.csv")) %>% clean_names()
 
+#filter returns rows matching conditions
 #Filter for cutthroat 
-cutthroat_dataset <- mutate(aquatic_dataset, species = "ONCL")
+cutthroat_dataset <- filter(aquatic_dataset, species == "ONCL")
+# mutate creates modifies and deletes columns
+#add a new column w/ k factor 
+cuttthroat_k <- mutate(cutthroat_dataset, k_factor = (100 * weight) / ( (0.1 *length1) ^3))
 #graph
 ggplot(cutthroat_dataset, aes(x = unittype)) +geom_bar(color = "green", fill = "yellow") + labs( Title = "Unit Types for Cuthroat", x= "Unit Type", y ="Count")
+```
 
+## Summarize and group by 
+
+```{r}
+#group by year and average k factor
+k_year <- group_by(cuttthroat_k,year) |> summarize(mean_k = mean(k_factor, na.rm =TRUE)) |> filter(year >= 2008)
+#another plot
+ggplot(data = k_year, aes(x = year, y = mean_k))+geom_point() +scale_x_continuous(breaks=c(2008:2018), labels=c(2008:2018),limits=c(2008,2018))
 ```
 
 <https://portal.edirepository.org/nis/mapbrowse?packageid=knb-lter-arc.10341.5>
@@ -428,3 +660,11 @@ mean_over_columns<- function(df){
 }
 mean_over_columns(mtcars)
 ```
+
+## Testing functions
+
+<https://testthat.r-lib.org/>
+
+## adding warnings
+
+# Sourcing Scripts

@@ -20,11 +20,14 @@ see initial chunk for info on excluding warnings and messages
 
 ## load packages/ hide in output
 
-```{r output=FALSE}
+```{r}
+#| echo: false
 library(here)
 library(tidyverse)
 library(janitor)
 library(dplyr)
+library(palmerpenguins)
+library(testthat)
 
 ```
 
@@ -185,7 +188,7 @@ The initial population structure is given by:
 fish_year0 <- c(5000, 8000, 600, 400)
 ```
 
-Add line-by-line comments wheres prompted in the code below, explaining what each is doing. Make sure that you are talking with your neighbors about what is really being created at each step.
+Add line-by-line comments wheres prompted in the code below, explaining what each is doing.
 
 ```{r}
 # Model projections
@@ -200,7 +203,7 @@ time_yr <- seq(from = 0, to = 8, by = 1)
 
 proj_year <- matrix(ncol = length(fish_year0), nrow = length(time_yr))
 
-# fills the first row of the empty matrix with the initial population 
+# fills the first row of the empty matrix with the initial population, all columns
 
 proj_year[1, ] <- fish_year0
 
@@ -453,11 +456,7 @@ for(i in seq_along(quarter_splits)){
 
 ## Nested for loop
 
-Create two sequences, one called `weekdays` that contains
-days of the week (\"Monday\", \"Tuesday\", \"Wednesday\", etc.) and one called
-`transects` that contains the series of transect names
-\"Transect A\", \"Transect B,\"Transect C\". Write a nested for loop that
-creates a matrix containing the 7 by 3 matrix below![](images/Screen%20Shot%202022-08-14%20at%205.08.36%20PM.png){width="520"}
+Create two sequences, one called `weekdays` that contains days of the week ("Monday", "Tuesday", "Wednesday", etc.) and one called `transects` that contains the series of transect names "Transect A", "Transect B,"Transect C". Write a nested for loop that creates a matrix containing the 7 by 3 matrix below![](images/Screen%20Shot%202022-08-14%20at%205.08.36%20PM.png){width="520"}
 
 ```{r}
 weekdays <- c("Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday")
@@ -540,10 +539,6 @@ is.numeric(mtcars$mpg)
 typeof(mtcars$cyl)
 ```
 
-```{r}
-
-```
-
 ## Here
 
 Here Package: much better option than using working directory
@@ -591,6 +586,28 @@ cuttthroat_k <- mutate(cutthroat_dataset, k_factor = (100 * weight) / ( (0.1 *le
 ggplot(cutthroat_dataset, aes(x = unittype)) +geom_bar(color = "green", fill = "yellow") + labs( Title = "Unit Types for Cuthroat", x= "Unit Type", y ="Count")
 ```
 
+```{r}
+# use mutate to convert year to character
+penguins_yr_chr <- penguins |> mutate(year = as.character(year))
+class(penguins_yr_chr$year)
+```
+
+```{r}
+#create a subset that only contains observations for adelie or chinstrap
+penguins |> filter(species %in% c("Adelie", "Chinstrap"))
+#the in operator looks at each does the value of this species in this row exist in this row, if yes keep the whole row 
+```
+
+## pivot longer
+
+```{r}
+tilapia <- read_csv(here("data", "us_tilapia_imports.csv"))
+#dat a is not tidy, each column needs to be a separate variable
+#collapse all columns except county
+tidy_til <- pivot_longer(tilapia, cols = -country, names_to = "year", values_to = "total tilapia imports")
+
+```
+
 ## Summarize and group by
 
 ```{r}
@@ -598,6 +615,18 @@ ggplot(cutthroat_dataset, aes(x = unittype)) +geom_bar(color = "green", fill = "
 k_year <- group_by(cuttthroat_k,year) |> summarize(mean_k = mean(k_factor, na.rm =TRUE)) |> filter(year >= 2008)
 #another plot
 ggplot(data = k_year, aes(x = year, y = mean_k))+geom_point() +scale_x_continuous(breaks=c(2008:2018), labels=c(2008:2018),limits=c(2008,2018))
+```
+
+See EDS 221 day 5 activities for another group by/summarize example
+
+### Changing column type
+
+```{r}
+#column year is a character
+class(tidy_til$year)
+
+tidier_til <- mutate(tidy_til, num_year = as.numeric(year))
+class(tidier_til$num_year)
 ```
 
 <https://portal.edirepository.org/nis/mapbrowse?packageid=knb-lter-arc.10341.5>
@@ -690,10 +719,7 @@ mean_over_columns(mtcars)
 
 ### function for dataframe
 
-The length:weight relationship for fish is: W=aLb, where where L is total fish
-length (centimeters), W is the expected fish weight (grams), and a and b
-are species-dependent parameter values (shown below for several fish
-from Peyton et al. 2016).
+The length:weight relationship for fish is: W=aLb, where where L is total fish length (centimeters), W is the expected fish weight (grams), and a and b are species-dependent parameter values (shown below for several fish from Peyton et al. 2016).
 
 ```{r}
 fish_parms <- tribble(~Sci_name, ~Common_name, ~a_est, ~b_est,
@@ -703,12 +729,7 @@ fish_parms <- tribble(~Sci_name, ~Common_name, ~a_est, ~b_est,
 
 ```
 
-write a function called
-`fish_weight` that allows a user to only enter the *common
-name* (argument `fish_name`) and *total length*
-(argument `tot_length`) (in centimeters) of a fish, to return
-the expected fish weight in grams. Test it out for different species and
-lengths.
+write a function called `fish_weight` that allows a user to only enter the *common name* (argument `fish_name`) and *total length* (argument `tot_length`) (in centimeters) of a fish, to return the expected fish weight in grams. Test it out for different species and lengths.
 
 ```{r}
 fish_weight <- function(name, total_length){
@@ -723,21 +744,15 @@ fish_weight("milkfish",milkfish_weights)
 
 ### Generic real-world function
 
-Wave power (more accurately wave energy flux) in deep water is
-approximated by:
+Wave power (more accurately wave energy flux) in deep water is approximated by:
 
 Pdeep=0.5H2T
 
-where P is power in kWm (potential power per wave
-meter), H is wave height in meters
-(more specifically, the *significant wave height*), and T is the wave period in seconds. Learn more [here](https://en.wikipedia.org/wiki/Wave_power).
+where P is power in kWm (potential power per wave meter), H is wave height in meters (more specifically, the *significant wave height*), and T is the wave period in seconds. Learn more [here](https://en.wikipedia.org/wiki/Wave_power).
 
-Write a function called `wave_power` that calculates
-potential ocean wave power given inputs of wave height and period.
+Write a function called `wave_power` that calculates potential ocean wave power given inputs of wave height and period.
 
-Use your `wave_power` function to approximate wave power
-for a period of 8 seconds, over a range of wave heights from 0 to 3
-meters by increments of 0.2 meters.
+Use your `wave_power` function to approximate wave power for a period of 8 seconds, over a range of wave heights from 0 to 3 meters by increments of 0.2 meters.
 
 ```{r}
 wave_power <- function(height,period){
@@ -749,20 +764,11 @@ wave_power(heights,8)
 
 ### else-if function
 
-The wave energy equation changes based on ocean depth. Along the
-coast of Brenville, which has a very sharp shelf as the wave approaches
-the coast, wave energy is approximated using the deep ocean equation
-(the one you used above) for depths \> 12 meters, and a shallow
-equation for depths \<= 12 meters. The Brenville team estimates
-shallow wave power by:
+The wave energy equation changes based on ocean depth. Along the coast of Brenville, which has a very sharp shelf as the wave approaches the coast, wave energy is approximated using the deep ocean equation (the one you used above) for depths \> 12 meters, and a shallow equation for depths \<= 12 meters. The Brenville team estimates shallow wave power by:
 
 Pshallow=0.81H2T
 
-Create a function that requires inputs of water depth, wave height
-and period, then returns the approximated wave power using the correct
-equation for the depth entered. It should also include a message (hint:
-use `message()` just like you would use warning!) that lets
-the user know if the shallow or deep water equation was used.
+Create a function that requires inputs of water depth, wave height and period, then returns the approximated wave power using the correct equation for the depth entered. It should also include a message (hint: use `message()` just like you would use warning!) that lets the user know if the shallow or deep water equation was used.
 
 ```{r}
 brenville_wave_power <- function(height,period, depth){
@@ -780,7 +786,30 @@ if( depth > 12){
 
 <https://testthat.r-lib.org/>
 
-## adding warnings, messages and stop
+```{r}
+mean_range <- function(d.f){
+  col_mean <- apply(X = d.f, MARGIN = 2, FUN = mean, na.rm = TRUE)
+  col_mean_max <-max(col_mean)
+  col_mean_min <- min(col_mean)
+  print(c(col_mean_max,col_mean_min))
+}
+mean_range(mtcars)
+
+```
+
+```{r}
+# look at reference page for test that for option
+# i want the length of the output function to be 2 
+expect_length(mean_range(mtcars), 2)
+#nothing happens = working
+expect_true(mean_range(mtcars)[1] >= mean_range(mtcars)[2])
+
+expect_type(mean_range(mtcars),"double")
+#is.character? 
+expect_false(is.character(mean_range(mtcars)))
+```
+
+##  warnings, messages and stop
 
 ```{r}
 #warnings will still run but display warning
@@ -801,3 +830,60 @@ calc_windpower(rho = 1.226, radius = 50, windspeed = 35)
 ```
 
 # Sourcing Scripts
+
+```{r}
+source(here("scr", "function.R"))
+name_cart(food = "lasagna", animal = "giraffe")
+
+source(here("scr", "cork_oak_growth.R"))
+
+# height_t2: oak height at time 2 (meters)
+# height_t1: oak height at time 1 (meters)
+# t1: tree age at time 1, (years)
+# t2: tree age at time 2 (years)
+
+height_t2(12,3,8)
+#as a vector
+tree_ages <- seq(from = 6, to = 50, by = 1)
+height_t2(height_t1 = 12, t1 = 3, t2 = tree_ages)
+
+```
+
+# Making Packages
+
+see full instructions:
+
+<https://allisonhorst.github.io/EDS_221_programming-essentials/interactive_sessions/day_5_interactive.html>
+
+In RStudio, new R Project \> New directory \> R package
+
+Once you make a functions, Add a roxygen skeleton (Code \> Insert Roxygen Skeleton)
+
+-   In the script with your function, click anywhere within your function
+
+-   Add a roxygen skeleton (Code \> Insert Roxygen Skeleton)
+
+-   Update your documentation with at least a new title and parameter descriptions. Save.
+
+-   Run `devtools::document()` (note: if you see \'Warning: Namespace not generated by Roxygen2,\' you should delete the existing NAMESPACE file, then run `devtools::document()` again to resolve)
+
+-   Something new is created - check the `man/` folder and
+    see that an .Rd (R documentation) file has been added that is associated
+    with your function name, and that contains your updated documentation
+
+-   Press Install and restart in the Build tab
+
+-   Check for your function documentation - does it exist now? Cool
+
+-   Once your package is in a public repo on GitHub, anyone can install its contents by running:
+
+```{=html}
+<!-- -->
+```
+    `remotes::install_github("username/reponame")`
+
+# Citations
+
+```{r}
+citation("palmerpenguins")
+```

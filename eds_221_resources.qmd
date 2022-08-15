@@ -451,6 +451,31 @@ for(i in seq_along(quarter_splits)){
 }
 ```
 
+## Nested for loop
+
+Create two sequences, one called `weekdays` that contains
+days of the week (\"Monday\", \"Tuesday\", \"Wednesday\", etc.) and one called
+`transects` that contains the series of transect names
+\"Transect A\", \"Transect B,\"Transect C\". Write a nested for loop that
+creates a matrix containing the 7 by 3 matrix below![](images/Screen%20Shot%202022-08-14%20at%205.08.36%20PM.png){width="520"}
+
+```{r}
+weekdays <- c("Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday")
+transects <- c("Transect A", "Transect B", "Transect C")
+#make an empty matrix 
+week_transect <- matrix(nrow = length(weekdays), ncol = length(transects))
+for (i in seq_along(transects)){
+  for(j in seq_along(weekdays)){
+    val = paste(weekdays[j], "-", transects [i])
+    week_transect[j,i] <- val
+  }
+}
+```
+
+## Functions and Forloops
+
+see section on functions
+
 ## Applying functions across a dataframe
 
 also known as syntactic sugar for for loops
@@ -566,7 +591,7 @@ cuttthroat_k <- mutate(cutthroat_dataset, k_factor = (100 * weight) / ( (0.1 *le
 ggplot(cutthroat_dataset, aes(x = unittype)) +geom_bar(color = "green", fill = "yellow") + labs( Title = "Unit Types for Cuthroat", x= "Unit Type", y ="Count")
 ```
 
-## Summarize and group by 
+## Summarize and group by
 
 ```{r}
 #group by year and average k factor
@@ -661,10 +686,118 @@ mean_over_columns<- function(df){
 mean_over_columns(mtcars)
 ```
 
+## Examples
+
+### function for dataframe
+
+The length:weight relationship for fish is: W=aLb, where where L is total fish
+length (centimeters), W is the expected fish weight (grams), and a and b
+are species-dependent parameter values (shown below for several fish
+from Peyton et al. 2016).
+
+```{r}
+fish_parms <- tribble(~Sci_name, ~Common_name, ~a_est, ~b_est,
+        "chanos chanos","milkfish", 0.0905, 2.52,
+        "Sphyraena barracuda", "Great Barracuda", 0.0181,3.27,
+        "Caranx ignobilis","Giant trevally", 0.0353, 3.05)
+
+```
+
+write a function called
+`fish_weight` that allows a user to only enter the *common
+name* (argument `fish_name`) and *total length*
+(argument `tot_length`) (in centimeters) of a fish, to return
+the expected fish weight in grams. Test it out for different species and
+lengths.
+
+```{r}
+fish_weight <- function(name, total_length){
+ new <- filter(fish_parms, Common_name == name)
+ total_length^new$b_est * new$a_est
+  
+}
+#test over a range of lengths
+milkfish_weights <- seq(from = 0, to = 100, by =1)
+fish_weight("milkfish",milkfish_weights)
+```
+
+### Generic real-world function
+
+Wave power (more accurately wave energy flux) in deep water is
+approximated by:
+
+Pdeep=0.5H2T
+
+where P is power in kWm (potential power per wave
+meter), H is wave height in meters
+(more specifically, the *significant wave height*), and T is the wave period in seconds. Learn more [here](https://en.wikipedia.org/wiki/Wave_power).
+
+Write a function called `wave_power` that calculates
+potential ocean wave power given inputs of wave height and period.
+
+Use your `wave_power` function to approximate wave power
+for a period of 8 seconds, over a range of wave heights from 0 to 3
+meters by increments of 0.2 meters.
+
+```{r}
+wave_power <- function(height,period){
+  0.5 * height ^2 * period
+}
+heights <- seq(from = 0, to = 3, by = 0.2)
+wave_power(heights,8)
+```
+
+### else-if function
+
+The wave energy equation changes based on ocean depth. Along the
+coast of Brenville, which has a very sharp shelf as the wave approaches
+the coast, wave energy is approximated using the deep ocean equation
+(the one you used above) for depths \> 12 meters, and a shallow
+equation for depths \<= 12 meters. The Brenville team estimates
+shallow wave power by:
+
+Pshallow=0.81H2T
+
+Create a function that requires inputs of water depth, wave height
+and period, then returns the approximated wave power using the correct
+equation for the depth entered. It should also include a message (hint:
+use `message()` just like you would use warning!) that lets
+the user know if the shallow or deep water equation was used.
+
+```{r}
+brenville_wave_power <- function(height,period, depth){
+if( depth > 12){
+  message("deep ocean equation used")
+  0.5 * height ^2 * period
+} else if (depth <= 12){
+  message("Shallow ocean equation used")
+  0.81 * height ^2 * period
+}
+}
+```
+
 ## Testing functions
 
 <https://testthat.r-lib.org/>
 
-## adding warnings
+## adding warnings, messages and stop
+
+```{r}
+#warnings will still run but display warning
+#stop will not allow it to run
+#message will run (see example above in if else function, needs to be before the mathematical part of the function)
+calc_windpower <- function(rho,radius, windspeed) {
+  if (windspeed > 130){
+    warning("whoa that's too fast")
+  } else if (rho >1.225){
+    warning("that air density is suspicious")
+  } else if (radius <0){
+    stop("rotor radius must be a positive value")
+  }
+  0.3*rho*pi*(radius^2)*(windspeed^3)
+}
+
+calc_windpower(rho = 1.226, radius = 50, windspeed = 35)
+```
 
 # Sourcing Scripts

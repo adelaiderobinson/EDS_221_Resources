@@ -454,6 +454,27 @@ for(i in seq_along(quarter_splits)){
 }
 ```
 
+An example where sequence along is not the best option\
+Given the vector:
+
+    “brown bear”, “red bird”, “yellow duck”, “blue horse”
+
+Write code to recreate text of the first 3 pages in the book "Brown bear, brown bear, what do you see?"
+
+**Those should read:**
+
+"brown bear, brown bear, what do you see? I see a red bird looking at me." "red bird, red bird, what do you see? I see a yellow duck looking at me." "yellow duck, yellow duck, what do you see? I see a blue horse looking at me."
+
+create a sequence that goes only from 1 to 3, so the last one is left out.
+
+```{r}
+v <- c("brown bear", "red bird", "yellow duck", "blue horse")
+
+for( i in seq( from = 1, to =length(v)-1)){ print(paste0(v[i]," ",v[i],",", " what do you see, ", "I see a ", v[i+1], " looking at me"))
+             }
+
+```
+
 ## Nested for loop
 
 Create two sequences, one called `weekdays` that contains days of the week ("Monday", "Tuesday", "Wednesday", etc.) and one called `transects` that contains the series of transect names "Transect A", "Transect B,"Transect C". Write a nested for loop that creates a matrix containing the 7 by 3 matrix below![](images/Screen%20Shot%202022-08-14%20at%205.08.36%20PM.png){width="520"}
@@ -568,9 +589,121 @@ ggsave(plot = lead_poverty_plot, here("figs","lead_plot.png"), width = 4, height
 Kling <- read_csv(here("data", "2011_Kling_Akchem.csv"), na = ".")
 ```
 
-## mutating and filtering data
+###  untidy dataset that will be used in examples
+
+```{r}
+wb_indicators <- read_csv(here("data", "wb_indicators.csv"), na = c("..", ""))
+#need to remove ... and formatting that makes r thinks it a string "", looks for exact string match
+# truly missing cell, should auto show up as NA
+
+```
+
+## Subset
 
 Dataset from: <https://portal.edirepository.org/nis/mapbrowse?packageid=knb-lter-and.4027.14>use filter when you want to pull a certain set of values from column
+
+### Filter
+
+#### exact matches
+
+```{r}
+ex_2 <- starwars |> filter(eye_color == "blue")
+
+```
+
+```{r}
+ex_2 <- starwars |> filter(eye_color == "blue")
+```
+
+#### and statement
+
+```{r}
+ex_4 <- starwars |> filter(height >= 180 & homeworld == "Tatooine")
+```
+
+```{r}
+ex_5 <- starwars |> filter(hair_color == "brown" & species == "Human")
+```
+
+#### or statement
+
+```{r}
+ex_6 <- starwars |> filter(height > 180 | eye_color == "yellow")
+```
+
+#### In
+
+```{r}
+ex_8 <- starwars |> filter(eye_color == "blue" | eye_color == "brown")
+
+#same but more efficient 
+ex_9 <- starwars |> filter(eye_color %in% c("blue", "brown", "red"))
+```
+
+#### Negate
+
+```{r}
+ex_12 <- starwars |> filter(species != "Human")
+
+ex_13 <- starwars |> filter(!species %in% c("Human", "Ewok", "Wookie"))
+```
+
+### Select
+
+```{r}
+ex_14 <- wb_clean |>
+  select(Country, co2_emissions_kit, Year)
+
+# select by name or position, just by position 
+ex_15 <- wb_clean |> select(Year:fossil_fuel_cons_pct)
+
+#exclude access_electricity_pp
+ex_15 <- wb_clean |> select(Year:fossil_fuel_cons_pct, -acess_electricity_pp)
+
+ex_17 <- wb_clean |> 
+  filter(Country %in% c("Bolivia", "Chile", "Mexico")) |> 
+  select(Country:fossil_fuel_cons_pct)
+
+```
+
+```{r}
+#rename at the same time as selecting
+
+
+ex_18 <- wb_clean |> select(year_new = Year, 
+                            emissions = co2_emissions_kit, 
+                            country_name = Country)
+
+
+#this also reorders to the order you have put in 
+
+ex_19 <- wb_clean |> select(Year, Country, water_stress) |> 
+  filter(Country %in% c("Afghanistan", "Albania", "Algeria"))
+
+
+```
+
+## Mutate
+
+```{r}
+#make a new column with tons instead of kilotons for co2 emissions
+ex_22 <- wb_clean |> 
+  mutate(c02_emissions_t = co2_emissions_kit * 1000)|> relocate(c02_emissions_t,.after = co2_emissions_kit )
+
+ex_23 <- wb_clean |> 
+  mutate(yay = "YAY")
+#could do something like this but based on existing values
+
+ex_24 <- wb_clean |> 
+  mutate(Year = as.character(Year))
+
+ex_25 <- ex_24 |> mutate(Year = as.numeric(Year))
+#move columns around
+ex_26 <- wb_clean |> relocate(water_stress, .after = Year)
+
+```
+
+### Filter and mutate example
 
 ```{r}
 #import dataset and clean names 
@@ -600,6 +733,10 @@ penguins |> filter(species %in% c("Adelie", "Chinstrap"))
 
 ## pivot longer
 
+see lecture EDS 221 11 for further info
+
+or help cheatsheets, browse cheatsheets
+
 ```{r}
 tilapia <- read_csv(here("data", "us_tilapia_imports.csv"))
 #dat a is not tidy, each column needs to be a separate variable
@@ -608,7 +745,48 @@ tidy_til <- pivot_longer(tilapia, cols = -country, names_to = "year", values_to 
 
 ```
 
-## Summarize and group by
+cols = week_1 : week_3
+
+span over a range of columns
+
+## Pivot wider
+
+##  separate
+
+## drop_na 
+
+## renaming columns
+
+All in example below,
+
+this example used pivot longer and then wider
+
+Problems with this dataset: year, which is one variable is spread out over columns, and the values (which are various things) are also spread out, the series name column had multiple variables
+
+```{r}
+#first pivot longer to get years and series names into their own column
+wb_indicators_longer <- wb_indicators |> pivot_longer(cols = '2001 [YR2001]': '2020 [YR2020]', names_to = "year", values_to = "indicator_value")
+                                   
+```
+
+```{r}
+wb_clean <- wb_indicators_longer |> 
+  separate(col = year, into = c("year", "year_chr"), sep = " ") |> 
+  select(-year_chr, -"Country Code", -"Series Code" ) |> # exclude year, countrycode and series code 
+  mutate(year = as.numeric(year)) |> #overwrites because we used same column name
+  drop_na('Series Name') |> #any row where series name column contains NA it will be dropped
+  pivot_wider(names_from = 'Series Name', values_from = indicator_value)
+
+#give it all new names, names doesn't work with pipe
+names(wb_clean) <- c( "country", "year", "acess_clean_fuels_pp", "acess_electricity_pp", "co2_emissions_kit", "fossil_fuel_cons_pct", "water_stress")
+#example of one renaming, new name, old name
+wb_clean2 <- wb_clean |> rename(my_year = Year)  
+
+
+
+```
+
+## group by and summarize
 
 ```{r}
 #group by year and average k factor
@@ -617,9 +795,43 @@ k_year <- group_by(cuttthroat_k,year) |> summarize(mean_k = mean(k_factor, na.rm
 ggplot(data = k_year, aes(x = year, y = mean_k))+geom_point() +scale_x_continuous(breaks=c(2008:2018), labels=c(2008:2018),limits=c(2008,2018))
 ```
 
-See EDS 221 day 5 activities for another group by/summarize example
+```{r}
+ex_27 <- starwars |> 
+  filter(homeworld %in% c("Naboo", "Tatooine")) |> 
+  group_by(species, homeworld) |> 
+  summarize(mean_height = mean(height, na.rm = TRUE), 
+            mean_mass = mean(mass, na.rm = TRUE))
 
-### Changing column type
+```
+
+## Count and uncount
+
+```{r}
+df <- tribble(
+  ~species, ~length, ~number,
+  "lobsters", 12, 4,
+  "lobsters", 14, 6,
+  "lobsters", 15, 2
+)
+df_case <- df |> 
+  uncount(number) #now each has their own row
+#put it back using count
+df_case2 <- df_case |> count(length)
+
+```
+
+```{r}
+#count counts observations
+#combination of group_by summarize n()
+starwars |> 
+  count(homeworld,species)
+
+#does the same thing but able to add more
+starwars |> group_by(homeworld,species) |> 
+  summarize(size = n())
+```
+
+## Changing column type
 
 ```{r}
 #column year is a character
@@ -809,7 +1021,7 @@ expect_type(mean_range(mtcars),"double")
 expect_false(is.character(mean_range(mtcars)))
 ```
 
-##  warnings, messages and stop
+## warnings, messages and stop
 
 ```{r}
 #warnings will still run but display warning
@@ -865,11 +1077,9 @@ Once you make a functions, Add a roxygen skeleton (Code \> Insert Roxygen Skelet
 
 -   Update your documentation with at least a new title and parameter descriptions. Save.
 
--   Run `devtools::document()` (note: if you see \'Warning: Namespace not generated by Roxygen2,\' you should delete the existing NAMESPACE file, then run `devtools::document()` again to resolve)
+-   Run `devtools::document()` (note: if you see 'Warning: Namespace not generated by Roxygen2,' you should delete the existing NAMESPACE file, then run `devtools::document()` again to resolve)
 
--   Something new is created - check the `man/` folder and
-    see that an .Rd (R documentation) file has been added that is associated
-    with your function name, and that contains your updated documentation
+-   Something new is created - check the `man/` folder and see that an .Rd (R documentation) file has been added that is associated with your function name, and that contains your updated documentation
 
 -   Press Install and restart in the Build tab
 
@@ -877,9 +1087,8 @@ Once you make a functions, Add a roxygen skeleton (Code \> Insert Roxygen Skelet
 
 -   Once your package is in a public repo on GitHub, anyone can install its contents by running:
 
-```{=html}
 <!-- -->
-```
+
     `remotes::install_github("username/reponame")`
 
 # Citations

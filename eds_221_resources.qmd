@@ -272,7 +272,29 @@ df_ex_3$price[3]
 
 ```
 
-## building data frame using tribble
+### tribble
+
+you can do this by hand or using data pasta, paste as tribble
+
+```{r}
+
+animals <- tibble::tribble(
+             ~location,   ~species,  ~maturity,
+              "lagoon",   "bobcat",    "adult",
+               "bluff",   "coyote", "juvenile",
+               "creek",      "fox",    "adult",
+                "oaks", "squirrel", "juvenile",
+               "bluff",   "bobcat",    "adult"
+             )
+sites <- tibble::tribble(
+           ~location,      ~full_site_name, ~jurisdiction,
+             "beach",       "Goleta Beach",     "SB City",
+            "lagoon",         "UCSB Lagoon",        "UCSB",
+             "bluff",       "Ellwood Mesa",     "SB City",
+              "oaks", "Fremont Campground",        "USFS"
+           )
+
+```
 
 # Indexing
 
@@ -589,7 +611,7 @@ ggsave(plot = lead_poverty_plot, here("figs","lead_plot.png"), width = 4, height
 Kling <- read_csv(here("data", "2011_Kling_Akchem.csv"), na = ".")
 ```
 
-###  untidy dataset that will be used in examples
+### untidy dataset that will be used in examples
 
 ```{r}
 wb_indicators <- read_csv(here("data", "wb_indicators.csv"), na = c("..", ""))
@@ -751,9 +773,9 @@ span over a range of columns
 
 ## Pivot wider
 
-##  separate
+## separate
 
-## drop_na 
+## drop_na
 
 ## renaming columns
 
@@ -843,7 +865,7 @@ class(tidier_til$num_year)
 
 <https://portal.edirepository.org/nis/mapbrowse?packageid=knb-lter-arc.10341.5>
 
-## 
+# 
 
 # Functions
 
@@ -1095,4 +1117,237 @@ Once you make a functions, Add a roxygen skeleton (Code \> Insert Roxygen Skelet
 
 ```{r}
 citation("palmerpenguins")
+```
+
+# Joins
+
+data pasta, addins, paste as tribble
+
+```{r}
+animals <- tibble::tribble(
+             ~location,   ~species,  ~maturity,
+              "lagoon",   "bobcat",    "adult",
+               "bluff",   "coyote", "juvenile",
+               "creek",      "fox",    "adult",
+                "oaks", "squirrel", "juvenile",
+               "bluff",   "bobcat",    "adult"
+             )
+sites <- tibble::tribble(
+           ~location,      ~full_site_name, ~jurisdiction,
+             "beach",       "Goleta Beach",     "SB City",
+            "lagoon",        "UCSB Lagoon",        "UCSB",
+             "bluff",       "Ellwood Mesa",     "SB City",
+              "oaks", "Fremont Campground",        "USFS")
+```
+
+## Mutating Joins
+
+### Full Join
+
+both rows an columns can increase or stay the same
+
+```{r}
+full_join_example <- full_join(animals,sites, by = "location")
+
+#if the key has different name by location by = c("a" = "b")
+weird <- full_join(animals, sites, by = c("location" = "jurisdiction"))
+```
+
+### Left Join
+
+your rows should stay the same and columns may increase
+
+keep in mind when you are left joining multiple datasets where there is overlap in columns you may be joining, you may need to specify multiple columns to join on so that the data is not duplicated. See eds_221_activities for an example.
+
+```{r}
+left_example <- left_join(animals, sites, by = "location")
+
+```
+
+### Inner Join
+
+only joins on rows where the key is present in both
+
+number of rows should decrease or stay the same
+
+```{r}
+inner_example <- inner_join(animals, sites, by = "location")
+sites_2 <- inner_example |> rename(loc = location)
+
+#if the matching columns do not match
+non_matching <- full_join(animals, sites_2, by = c("location" = "loc"))
+
+```
+
+## Filtering Joins
+
+filter observations from one data frame based on whether or not they march an observation in another table
+
+### semi Join
+
+only keep observations in x if they have a match in y, does not join columns
+
+```{r}
+semi_join_example <- semi_join(animals, sites)
+```
+
+### anti join
+
+only keeps observations in x if they do not have a match in y
+
+```{r}
+anti_join <- anti_join(animals, sites, by = "location")
+```
+
+# Lubridate (Dates and times)
+
+```{r}
+my_date <- "03 - 15- 1998"
+
+lubridate::mdy(my_date) #converts to iso 8601
+
+my_date2 <- "11/7/2003"
+dmy(my_date2)
+ 
+
+mydate3 <- "08-Jun-1974"
+dmy(mydate3)
+
+mydat4 <- "19610518"
+ymd(mydat4)
+
+mydate5 <- "august, 1st, 2022"
+mdy(mydate5)
+
+class(mdy(mydate5))
+```
+
+## times
+
+```{r}
+time <- "2020-08-12 11:18"
+time <- ymd_hm(time)
+class(time)
+
+with_tz(time, "America/Los_Angeles") #convert between time zone
+
+with_tz(time, "Australia/Brisbane")
+
+# pull pieces
+my_time <- ymd_hms(time)
+
+year(my_time)
+day(my_time)
+month(my_time)
+
+hour(my_time)
+minute(my_time)
+#allows you to say add a new column that only contains the month
+```
+
+## Pull out parts
+
+```{r}
+tedd_bday <- ymd("20170615")
+wday(tedd_bday, label = TRUE)
+
+bday <- mdy("12/28/1992")
+wday(bday, label = TRUE)
+week(bday)
+```
+
+```{r}
+urchin_counts <- tribble(
+  ~date, ~species, ~size_mm,
+  "10/3/2020","purple", 55,
+  "10/4/2020", "red", 48,
+  "11/17/2020", "red", 67)
+#how many were seen each month
+#parse so you can look at them separately 
+urchin_ymd <- urchin_counts |> 
+  mutate(date = mdy(date)) |> 
+  mutate(year = year(date), month = month(date), day(date))
+
+class(urchin_ymd$date)
+
+```
+
+## Intervals
+
+```{r}
+{r}
+day1 <- ymd("2020-01-06")
+day2 <- ymd("2020-05-18")
+
+time_interval <- interval(day1, day2)
+
+time_length(time_interval, "year")
+
+time_length(time_interval, "day")
+```
+
+# Stringr
+
+## str_detect
+
+```{r}
+my_string <- "Teddy loves eating salmon and socks"
+
+my_string |> 
+  str_detect("pup")
+
+my_string <- c("burrito", "fish taco", "taco salad")
+
+my_string |> str_detect("fish")
+
+#create a subset where we case rows
+skywalkers <- starwars |> filter(str_detect(name, pattern = "Skywalker"))
+
+maul <- starwars |> filter(str_detect(name, "Maul"))
+
+blue <- starwars |> filter(str_detect(eye_color, "blue"))
+
+```
+
+## str_replace
+
+```{r}
+fire_walkers <- starwars |> 
+  mutate(name_2 = str_replace(name, pattern = "Sky", 
+                              replacement = "Fire"))
+
+
+```
+
+## str_squish
+
+```{r}
+feedback <- c("  I ate    some    nachos", "Wednesday   morning")
+str_trim(feedback)
+
+str_squish(feedback)
+
+#capitalization 
+#str_to
+str_to_lower(feedback)
+str_to_upper(feedback)
+str_to_title(feedback)
+str_to_sentence(feedback)
+```
+
+## change case
+
+```{r}
+starwars_lc <- starwars |> mutate(name_lower = str_to_lower(name))
+```
+
+# Case when
+
+```{r}
+robot <- starwars |> 
+  mutate(robot_status = case_when(
+    species == "Droid"~ "A Robot",
+    species == "Human"~ "It's a human",
+    TRUE ~"This is something else"
+    ))
 ```

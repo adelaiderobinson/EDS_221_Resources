@@ -2,9 +2,8 @@
 title: "EDS221_Resource_Document"
 format: html
 editor: visual
-Execute:
-  warning:false
-  message:false
+execute:
+  echo: false
 ---
 
 # Quarto
@@ -28,7 +27,7 @@ library(janitor)
 library(dplyr)
 library(palmerpenguins)
 library(testthat)
-
+library(kableExtra)
 ```
 
 # Terminal
@@ -773,7 +772,7 @@ span over a range of columns
 
 ## Pivot wider
 
-## separate
+## Separate
 
 ## drop_na
 
@@ -824,6 +823,15 @@ ex_27 <- starwars |>
   summarize(mean_height = mean(height, na.rm = TRUE), 
             mean_mass = mean(mass, na.rm = TRUE))
 
+```
+
+## Kable table
+
+make it look nice
+
+```{r}
+ex_27  |> kable() |> 
+  kable_styling(bootstrap_options = "striped")
 ```
 
 ## Count and uncount
@@ -1157,7 +1165,7 @@ weird <- full_join(animals, sites, by = c("location" = "jurisdiction"))
 
 your rows should stay the same and columns may increase
 
-keep in mind when you are left joining multiple datasets where there is overlap in columns you may be joining, you may need to specify multiple columns to join on so that the data is not duplicated. See eds_221_activities for an example.
+keep in mind when you are left joining multiple datasets where there is overlap in columns you may be joining, you may need to specify multiple columns to join on so that the data is not duplicated. See eds_221 day 7activities for an example.
 
 ```{r}
 left_example <- left_join(animals, sites, by = "location")
@@ -1350,4 +1358,37 @@ robot <- starwars |>
     species == "Human"~ "It's a human",
     TRUE ~"This is something else"
     ))
+```
+
+# Reprex
+
+commented out b/c is broken
+
+```{r}
+# penguins |> 
+ # select(species, body_mass_g, flipper_length_mm, year) |> 
+ # filter(species == "Chinstrap") |> 
+#  str_to_lower(species) |> 
+#  group_by(island) |> 
+ # summarize(mean(flipper_length_mm, na.rm = TRUE))
+
+
+#create something that is failing in the same way
+#library(tidyverse)
+
+#warpbreaks |> 
+ # str_to_lower(wool)
+
+#in console run reprex:: reprex() to copy it to the clipboard
+
+#synthesized dataframe showing a fix
+library(tidyverse)
+df<- tribble(~animal, ~sock_color,
+        "Frog", "blue",
+        "Fox", "green",
+        "Marmot", "yellow")
+
+df |> mutate(animal = str_to_lower(animal))
+
+
 ```

@@ -14,7 +14,7 @@ see initial chunk for info on excluding warnings and messages
 #| fig-height: 5 
 #| fig-width : 4
 #these set the width of figures in output
-
+  
 ```
 
 ## load packages/ hide in output

@@ -27,7 +27,7 @@ library(janitor)
 library(dplyr)
 library(palmerpenguins)
 library(testthat)
-library(kableExtra)
+library(kableExtra) 
 ```
 
 # Terminal
